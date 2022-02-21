@@ -1,0 +1,34 @@
+package com.qf.j2112.controller;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Method;
+public class Base extends HttpServlet {
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setCharacterEncoding("utf-8");
+        String action=req.getParameter("action");
+        if(action==null)
+            action="all";
+        Class clazz=this.getClass();
+        try {
+            Method method=clazz.getDeclaredMethod(action,HttpServletRequest.class,HttpServletResponse.class);
+            String url=(String) method.invoke(this,req,resp);
+            if(url.startsWith("f")){
+                req.getRequestDispatcher(url.substring(2)).forward(req,resp);
+            }else if(url.startsWith("r")){
+                resp.sendRedirect(url.substring(2));
+            }else{
+                PrintWriter pw = resp.getWriter();
+                pw.write(url);
+                pw.flush();
+                pw.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
